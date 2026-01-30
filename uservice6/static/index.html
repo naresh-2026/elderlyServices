@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Weather Dress Suggestion</title>
+</head>
+<body>
+
+<h2>Dress Suggestion</h2>
+
+<input type="text" id="season" placeholder="summer / winter / rainy">
+<button onclick="send()">Get Suggestion</button>
+
+<ul id="result"></ul>
+
+<script>
+    console.log("creating websocket")
+const ws = new WebSocket("ws://localhost:8185/ws");
+ws.onopen=()=>{
+    console.log("websocket connected");
+}
+
+ws.onmessage = (event) => {
+    const data = JSON.parse(event.data);
+    const list = document.getElementById("result");
+    list.innerHTML = "";
+
+    if (data.error) {
+        list.innerHTML = "<li>" + data.error + "</li>";
+        return;
+    }
+
+    data.clothes.forEach(c => {
+        const li = document.createElement("li");
+        li.innerText = c;
+        list.appendChild(li);
+    });
+};
+
+function send() {
+    const season = document.getElementById("season").value;
+    ws.send(JSON.stringify({ season }));
+}
+</script>
+
+</body>
+</html>

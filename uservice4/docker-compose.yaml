@@ -1,0 +1,26 @@
+version: "3.8"
+
+services: 
+  app:
+    build: .
+    image: image4:1
+    container_name: medication-app
+    ports:
+      - "8183:8183"
+    depends_on:
+      - database
+    restart: always
+    environment:
+      MONGO_URI: mongodb://database:27017
+
+  database:
+    image: mongo:7
+    container_name: medication-mongo
+    restart: always
+    ports:
+      - "27018:27017"
+    volumes:
+      - mongo_data:/data/db
+
+volumes:
+  mongo_data:

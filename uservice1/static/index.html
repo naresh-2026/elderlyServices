@@ -1,0 +1,166 @@
+<!DOCTYPE HTML>
+<HTML>
+<Head>
+    <Title> Microservice1</Title>
+    <style>
+        .heading{
+            padding:20px;
+            text-align:center;
+            border-bottom: 1px solid black;
+            background-color: #f2f2f2;
+            border-radius: 5cm;
+        }
+        .container{
+            display:flex;
+            width:100%;
+            gap:20px;
+        }
+        .half-box{
+            flex:1;
+            padding:20px;
+            background-color:#f0f0f0;
+            border:1px solid #ccc;
+            box-sizing:border-box;
+            border-radius: 3cm;
+            position:relative; /* for button*/
+        }
+        .float-btn{
+            position:absolute;
+            bottom:10px;
+            right:10px;
+            background-color: grey;
+            color:whitesmoke;
+            padding:8px 12px;
+            border-radius: 3cm;
+            cursor: pointer;
+        }
+        .modal{
+            display:none;
+            position:fixed;
+            z-index:1;
+            left:0;
+            top:0;
+            width:100%;
+            height:100%;
+            background-color: rgba(0,0,0,0.4);
+        }
+        .modal-content{
+            background-color: #fefefe;
+            margin:15% auto;
+            padding:20px;
+            border:1px solid #888;
+            width:300px;
+            text-align:center;
+        }
+        .close-btn{
+            color:#aaa;
+            float:right;
+            font-size:28px;
+            font-weight:bold;
+            cursor:pointer
+        }
+        .close-btn:hover,
+        .close-btn:focus{
+            color:black;
+            text-decoration:none;
+        }
+
+        #pop-input{
+            padding:8px;
+            margin-top:10px;
+            width:80%;
+        }
+        #add-btn{
+            padding:10px 15px;
+            margin-top:10px;
+            background-color: #4CAF50;
+            color:white;
+            border:none;
+            cursor:pointer;
+        }
+    </style>
+</Head>
+<Body>
+    <div class="heading">
+        <h1>Remainders service</h1>
+    </div>
+    <div class="container">
+        <div class="half-box">
+            <h2>Daily Remainders</h2>
+            <button class="float-btn">+</button>
+        </div>
+        <div class="half-box">
+            <h2>Normal Remainders</h2>
+            <button class="float-btn">+</button>
+        </div>
+    </div>
+    <div id="my-model" class="modal">
+        <div class="model-content">
+            <span class="close-btn">&times;</span>
+            <h3>Enter Details</h3>
+            <input type="datetime-local" id="time" required>
+            <input type="text" id="pop-input" placeholder="message" required>
+            <button id="add-btn">Add</button>
+        </div>
+    </div>
+    
+    <script>
+        const ws=new WebSocket("ws://localhost:8180/ws");
+        ws.onmessage=(e)=>{
+            const alarm=JSON.parse(e.data);
+            console.log("Alarm:"+alarm.message);
+        }
+        const modal = document.getElementById("my-model");
+        const openPopupBtn = document.getElementsByClassName("float-btn")[0];
+        const closeBtn = document.getElementsByClassName("close-btn")[0];
+        const addBtn = document.getElementById("add-btn");
+        const popupInput = document.getElementById("pop-input");
+
+        // When the user clicks the "Open Pop-up" button, open the modal
+        openPopupBtn.onclick = function() {
+            console.log("block is displayed");
+            modal.style.display = "block";
+            popupInput.value = ''; // Clear input field when opening
+        };
+
+        // When the user clicks on (x), close the modal
+        closeBtn.onclick = function() {
+            modal.style.display = "none";
+        };
+
+        // When the user clicks anywhere outside of the modal, close it
+        window.onclick = function(event) {
+            if (event.target === modal) {
+                modal.style.display = "none";
+            }
+        };
+
+        addBtn.onclick=function(){
+            const time=document.getElementById("time").value;
+            const msg=popupInput.value;
+            if (msg.trim() !== "") {
+                alert("You entered: " + msg);
+                // You can add more logic here to handle the input (e.g., add to a list)
+                modal.style.display = "none"; // Close the modal after submission
+            } else {
+                alert("Please enter something!");
+            }
+            console.log("POST request...");
+            try{
+                fetch("/alarms",{
+                    method:"POST",
+                    headers:{"Content-Type":"application/json"},
+                    body:JSON.stringify({
+                        time:new Date(time).toISOString(),
+                        message:msg
+                    })
+                });
+            }catch(err){
+                console.log("Error occured",err);
+            }
+        }
+
+    </script>
+</Body>
+</HTML>
+

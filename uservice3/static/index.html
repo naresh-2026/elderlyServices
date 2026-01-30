@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Miccroservice3</title>
+        <style>
+
+        </style>
+    </head>
+    <body>
+        <div class="search">
+            <label for="food">Enter food item:</label>
+            <input type="text" id="food" placeholder="say apple" required>
+            <button id="search">FindValue</button>
+        </div>
+        <div class="list">
+            <pre id="json-container"></pre>
+        </div>
+        <script>
+            const listItem=document.getElementById("json-container");
+            const searchBtn=document.getElementById("search");
+            const ws=new WebSocket("ws://localhost:8182/ws");
+            ws.onopen=()=>{
+                console.log("Connected to server");
+                ws.send(JSON.stringify({type:"meals"}));
+            }
+            ws.onmessage=(event)=>{
+                const data=JSON.parse(event.data);
+                console.log("Got the data. showing it..");
+                listItem.textContent=JSON.stringify(data,null,2);
+            };
+            searchBtn.onclick=()=>{
+                const food=document.getElementById("food");
+                console.log("sending reauest to server..");
+                ws.send(JSON.stringify({type:"nutrition",food:food.value}));
+            }
+        </script>
+    </body>
+</html>

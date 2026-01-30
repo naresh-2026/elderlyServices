@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Medical Profile (WebSocket)</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f8;
+      padding: 20px;
+      max-width: 800px;
+      margin: auto;
+    }
+
+    h2 {
+      margin-top: 30px;
+    }
+
+    input, button {
+      padding: 8px;
+      margin: 5px 0;
+      width: 100%;
+    }
+
+    button {
+      background: #2563eb;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #1d4ed8;
+    }
+
+    .box {
+      background: white;
+      padding: 15px;
+      border-radius: 6px;
+      margin-bottom: 20px;
+    }
+
+    pre {
+      background: #111;
+      color: #0f0;
+      padding: 10px;
+      height: 150px;
+      overflow-y: auto;
+    }
+  </style>
+</head>
+
+<body>
+
+<h1>Medical Profile (WebSocket Client)</h1>
+
+<div class="box">
+  <h2>User ID</h2>
+  <input id="userId" placeholder="Enter User ID" value="user123" />
+</div>
+
+<div class="box">
+  <h2>Update Personal Information</h2>
+  <input id="name" placeholder="Name" />
+  <input id="age" type="number" placeholder="Age" />
+  <input id="gender" placeholder="Gender" />
+  <button onclick="updateUser()">Update Profile</button>
+</div>
+
+<div class="box">
+  <h2>Add Medication</h2>
+  <input id="medication" placeholder="Medication name" />
+  <button onclick="addMedication()">Add Medication</button>
+</div>
+
+<div class="box">
+  <h2>Retrieve Information</h2>
+  <button onclick="getProfile()">Get Profile</button>
+  <button onclick="getMedications()">Get Medication History</button>
+</div>
+
+<div class="box">
+  <h2>Server Response</h2>
+  <pre id="log"></pre>
+</div>
+
+<script>
+  const log = document.getElementById("log");
+
+  function logMessage(msg) {
+    log.textContent += msg + "\n";
+    log.scrollTop = log.scrollHeight;
+  }
+
+  const ws = new WebSocket("ws://localhost:8183/ws");
+
+  ws.onopen = () => logMessage("🟢 WebSocket connected");
+  ws.onerror = (e) => logMessage("🔴 WebSocket error",e);
+  ws.onclose = () => logMessage("🟡 WebSocket closed");
+
+  ws.onmessage = (event) => {
+    logMessage("📩 " + event.data);
+  };
+
+  function updateUser() {
+    const payload = {
+      action: "update_user",
+      user_id: userId.value,
+      data: {
+        name: name.value,
+        age: parseInt(age.value),
+        gender: gender.value
+      }
+    };
+    console.log("updating user");
+    ws.send(JSON.stringify(payload));
+  }
+
+  function addMedication() {
+    const payload = {
+      action: "add_medication",
+      user_id: userId.value,
+      data: {
+        medication: medication.value
+      }
+    };
+    console.log("adding medication");
+    ws.send(JSON.stringify(payload));
+  }
+
+  function getProfile() {
+    console.log("Requesting profile");
+    ws.send(JSON.stringify({
+      action: "get_profile",
+      user_id: userId.value
+    }));
+  }
+
+  function getMedications() {
+    console.log("Requesting medical history");
+    ws.send(JSON.stringify({
+      action: "get_medications",
+      user_id: userId.value
+    }));
+  }
+</script>
+
+</body>
+</html>

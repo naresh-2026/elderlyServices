@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+
+    <head>
+        <title>Miccroservice2</title>
+        <style>
+            .container{
+                display:flex;
+                justify-content: center;
+                align-items: center;
+                height:100vh;
+                width:100vw;
+                margin:0;
+                background-color: black;
+            }
+            #emergency{
+                width:200px;
+                height:200px;
+                border-radius:50%;
+                background-color: #dc3545;
+                color:white;
+                border:none;
+                box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+                cursor: pointer;
+                font-size: 1.5rem;
+                font-weight: bold;
+                text-transform: uppercase;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                text-align: center;
+            }
+            #emergency:hover{
+                background-color: #c82333;
+                transform: scale(1.05);
+                transform: background-color 0.3s ease, transform 0.3s ease;
+            }
+            #emergency:active{
+                background-color: #bd2130;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+                transform: scale(1.0);
+            }
+        </style>
+    </head>
+    <body>
+        <div id="contact-info">
+            <form>
+                <label for="email_address">Email:</label>
+                <input type="email" id="email_address" name="email_address">
+                <button id="email_btn">Add</button>
+
+                <br><br>
+                <label for="phone_number">Phone:</label>
+                <input tpe="tel" id="phone_number" name="phone_number" pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}">
+                <small>Format:123-456-7890</small>
+                <button id="phone_btn">Add</button>
+            </form>
+        </div>
+        <div class="container2">
+            <button id="emergency">emergency</button>
+        </div>
+
+        <script>
+            const emergencyBtn=document.getElementById("emergency");
+            const emailBtn=document.getElementById("email_btn");
+            const phoneBtn=document.getElementById("phone_btn");
+            const emailFd=document.getElementById("email_address");
+            const phoneFd=document.getElementById("phone_number");
+            const ws=new WebSocket("ws://localhost:8181/ws");
+            ws.onmessage=(e)=>{
+                console.log(e.data);
+            }
+            emergencyBtn.onclick=function(){
+                console.log("Sending emergency!");
+                ws.send(JSON.stringify({
+                    type:"emergency"
+                }));
+            }
+            emailBtn.onclick=function(e){
+                e.preventDefault();
+                if(!emailFd.value){
+                    console.log("Email is required");
+                    return;
+                }
+                console.log("Updating email");
+                ws.send(JSON.stringify({
+                    type:"update_contact",
+                    email:emailFd.value,
+                    phone:""
+                }));
+            }
+            phoneBtn.onclick=function(e){
+                e.preventDefault();
+                if(!phoneFd.value){
+                    console.log("Phone number is required");
+                    return;
+                }
+                console.log("Updating phone number");
+                ws.send(JSON.stringify({
+                    type:"update_contact",
+                    email:"",
+                    phone:phoneFd.value
+                }));
+            }
+        </script>
+    </body>
+</html>
