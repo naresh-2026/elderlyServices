@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: uservice2
+  labels:
+    app: uservice2
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: uservice2
+  template:
+    metadata:
+      labels:
+        app: uservice2
+    spec:
+      containers:
+        - name: uservice2
+          image: naresh2026/uservice2:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8181
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "64Mi"
+            limits:
+              cpu: "250m"
+              memory: "128Mi"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8181
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8181
+            initialDelaySeconds: 3
+            periodSeconds: 5

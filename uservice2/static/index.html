@@ -1,107 +1,193 @@
 <!DOCTYPE html>
 <html>
+<head>
+<title>Microservice2</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: #0d0d0d;
+  font-family: system-ui, sans-serif;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+  padding: 2rem;
+}
+.card {
+  background: #1a1a1a;
+  border: 1px solid #2e2e2e;
+  border-radius: 12px;
+  padding: 1.5rem;
+  width: 100%;
+  max-width: 420px;
+}
+.card-title {
+  font-size: 11px;
+  font-weight: 500;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  margin-bottom: 1rem;
+}
+.field { margin-bottom: 1rem; }
+.field label { display: block; font-size: 13px; color: #aaa; margin-bottom: 6px; }
+.field-row { display: flex; gap: 8px; }
+.field-row input {
+  flex: 1;
+  background: #111;
+  border: 1px solid #333;
+  border-radius: 8px;
+  color: #f0f0f0;
+  font-size: 14px;
+  height: 36px;
+  padding: 0 12px;
+  outline: none;
+}
+.field-row input:focus { border-color: #555; }
+.field small { font-size: 12px; color: #555; margin-top: 4px; display: block; }
+.btn-add {
+  white-space: nowrap;
+  font-size: 13px;
+  padding: 0 14px;
+  height: 36px;
+  border-radius: 8px;
+  border: 1px solid #333;
+  background: transparent;
+  color: #ccc;
+  cursor: pointer;
+}
+.btn-add:hover { background: #2a2a2a; border-color: #444; }
+.btn-add:active { transform: scale(0.98); }
+.status-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #2e2e2e;
+}
+.status-dot { width: 8px; height: 8px; border-radius: 50%; background: #555; flex-shrink: 0; }
+.status-dot.connected { background: #4ade80; }
+.status-dot.error { background: #f87171; }
+.status-text { font-size: 12px; color: #555; }
+.emergency-wrap { display: flex; flex-direction: column; align-items: center; gap: 1rem; }
+.emergency-btn {
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  background: #7f1d1d;
+  border: 6px solid #450a0a;
+  color: #fecaca;
+  font-size: 1.1rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+}
+.emergency-btn:hover { background: #991b1b; transform: scale(1.04); }
+.emergency-btn:active { transform: scale(0.97); background: #450a0a; }
+.emergency-btn:disabled { background: #333; border-color: #222; color: #666; cursor: not-allowed; transform: none; }
+.toast { font-size: 13px; color: #888; min-height: 18px; text-align: center; }
+</style>
+</head>
+<body>
 
-    <head>
-        <title>Miccroservice2</title>
-        <style>
-            .container{
-                display:flex;
-                justify-content: center;
-                align-items: center;
-                height:100vh;
-                width:100vw;
-                margin:0;
-                background-color: black;
-            }
-            #emergency{
-                width:200px;
-                height:200px;
-                border-radius:50%;
-                background-color: #dc3545;
-                color:white;
-                border:none;
-                box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-                cursor: pointer;
-                font-size: 1.5rem;
-                font-weight: bold;
-                text-transform: uppercase;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                text-align: center;
-            }
-            #emergency:hover{
-                background-color: #c82333;
-                transform: scale(1.05);
-                transform: background-color 0.3s ease, transform 0.3s ease;
-            }
-            #emergency:active{
-                background-color: #bd2130;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-                transform: scale(1.0);
-            }
-        </style>
-    </head>
-    <body>
-        <div id="contact-info">
-            <form>
-                <label for="email_address">Email:</label>
-                <input type="email" id="email_address" name="email_address">
-                <button id="email_btn">Add</button>
+<div class="card">
+  <p class="card-title">Contact info</p>
+  <div class="field">
+    <label for="email_address">Email address</label>
+    <div class="field-row">
+      <input type="email" id="email_address" placeholder="you@example.com">
+      <button class="btn-add" id="email_btn">Add</button>
+    </div>
+  </div>
+  <div class="field">
+    <label for="phone_number">Phone number</label>
+    <div class="field-row">
+      <input type="tel" id="phone_number" placeholder="123-456-7890" pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}">
+      <button class="btn-add" id="phone_btn">Add</button>
+    </div>
+    <small>Format: 123-456-7890</small>
+  </div>
+  <div class="status-bar">
+    <div class="status-dot" id="status-dot"></div>
+    <span class="status-text" id="status-text">Connecting…</span>
+  </div>
+</div>
 
-                <br><br>
-                <label for="phone_number">Phone:</label>
-                <input tpe="tel" id="phone_number" name="phone_number" pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}">
-                <small>Format:123-456-7890</small>
-                <button id="phone_btn">Add</button>
-            </form>
-        </div>
-        <div class="container2">
-            <button id="emergency">emergency</button>
-        </div>
+<div class="emergency-wrap">
+  <button class="emergency-btn" id="emergency" disabled>Emergency</button>
+  <p class="toast" id="toast"></p>
+</div>
 
-        <script>
-            const emergencyBtn=document.getElementById("emergency");
-            const emailBtn=document.getElementById("email_btn");
-            const phoneBtn=document.getElementById("phone_btn");
-            const emailFd=document.getElementById("email_address");
-            const phoneFd=document.getElementById("phone_number");
-            const ws=new WebSocket("ws://localhost:8181/ws");
-            ws.onmessage=(e)=>{
-                console.log(e.data);
-            }
-            emergencyBtn.onclick=function(){
-                console.log("Sending emergency!");
-                ws.send(JSON.stringify({
-                    type:"emergency"
-                }));
-            }
-            emailBtn.onclick=function(e){
-                e.preventDefault();
-                if(!emailFd.value){
-                    console.log("Email is required");
-                    return;
-                }
-                console.log("Updating email");
-                ws.send(JSON.stringify({
-                    type:"update_contact",
-                    email:emailFd.value,
-                    phone:""
-                }));
-            }
-            phoneBtn.onclick=function(e){
-                e.preventDefault();
-                if(!phoneFd.value){
-                    console.log("Phone number is required");
-                    return;
-                }
-                console.log("Updating phone number");
-                ws.send(JSON.stringify({
-                    type:"update_contact",
-                    email:"",
-                    phone:phoneFd.value
-                }));
-            }
-        </script>
-    </body>
+<script>
+const emergencyBtn = document.getElementById("emergency");
+const emailBtn     = document.getElementById("email_btn");
+const phoneBtn     = document.getElementById("phone_btn");
+const emailFd      = document.getElementById("email_address");
+const phoneFd      = document.getElementById("phone_number");
+const dot          = document.getElementById("status-dot");
+const statusText   = document.getElementById("status-text");
+const toast        = document.getElementById("toast");
+
+function getWsUrl() {
+  const proto = location.protocol === "https:" ? "wss:" : "ws:";
+  return `${proto}//${location.host}/ws`;
+}
+
+let ws;
+function connect() {
+  ws = new WebSocket(getWsUrl());
+  ws.onopen = () => {
+    dot.className = "status-dot connected";
+    statusText.textContent = "Connected";
+    emergencyBtn.disabled = false;
+  };
+  ws.onclose = () => {
+    dot.className = "status-dot error";
+    statusText.textContent = "Disconnected — retrying…";
+    emergencyBtn.disabled = true;
+    setTimeout(connect, 3000);
+  };
+  ws.onerror = () => {
+    dot.className = "status-dot error";
+    statusText.textContent = "Connection error";
+  };
+  ws.onmessage = (e) => {
+    console.log(e.data);
+    showToast("Server: " + e.data);
+  };
+}
+connect();
+
+function showToast(msg) {
+  toast.textContent = msg;
+  setTimeout(() => { toast.textContent = ""; }, 3000);
+}
+
+emergencyBtn.onclick = () => {
+  ws.send(JSON.stringify({ type: "emergency" }));
+  showToast("Emergency signal sent");
+};
+
+emailBtn.onclick = (e) => {
+  e.preventDefault();
+  if (!emailFd.value) { showToast("Email is required"); return; }
+  ws.send(JSON.stringify({ type: "update_contact", email: emailFd.value, phone: "" }));
+  showToast("Email updated");
+  emailFd.value = "";
+};
+
+phoneBtn.onclick = (e) => {
+  e.preventDefault();
+  if (!phoneFd.value) { showToast("Phone number is required"); return; }
+  ws.send(JSON.stringify({ type: "update_contact", email: "", phone: phoneFd.value }));
+  showToast("Phone updated");
+  phoneFd.value = "";
+};
+</script>
+</body>
 </html>

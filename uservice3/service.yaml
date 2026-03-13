@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: nutrition-app
+  labels:
+    app: nutrition-app
+spec:
+  type: LoadBalancer
+  selector:
+    app: nutrition-app
+  ports:
+    - protocol: TCP
+      port: 8182
+      targetPort: 8182
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nutrition-mongo
+  labels:
+    app: nutrition-mongo
+spec:
+  type: ClusterIP
+  selector:
+    app: nutrition-mongo
+  ports:
+    - protocol: TCP
+      port: 27017
+      targetPort: 27017

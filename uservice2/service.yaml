@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: uservice2
+  labels:
+    app: uservice2
+spec:
+  selector:
+    app: uservice2
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8181
+  type: ClusterIP
