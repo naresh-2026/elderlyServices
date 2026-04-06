@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: uservice1-service
+spec:
+  selector:
+    app: uservice1                  # Must match label in deployment
+  ports:
+    - protocol: TCP
+      port: 80                      # External port
+      targetPort: 8180              # Must match containerPort
+  type: LoadBalancer                # Use NodePort for minikube

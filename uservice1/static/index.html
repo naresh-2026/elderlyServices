@@ -1,166 +1,245 @@
 <!DOCTYPE HTML>
-<HTML>
-<Head>
-    <Title> Microservice1</Title>
+<html>
+<head>
+    <title>Reminders Service</title>
     <style>
-        .heading{
-            padding:20px;
-            text-align:center;
-            border-bottom: 1px solid black;
-            background-color: #f2f2f2;
-            border-radius: 5cm;
-        }
-        .container{
-            display:flex;
-            width:100%;
-            gap:20px;
-        }
-        .half-box{
-            flex:1;
-            padding:20px;
-            background-color:#f0f0f0;
-            border:1px solid #ccc;
-            box-sizing:border-box;
-            border-radius: 3cm;
-            position:relative; /* for button*/
-        }
-        .float-btn{
-            position:absolute;
-            bottom:10px;
-            right:10px;
-            background-color: grey;
-            color:whitesmoke;
-            padding:8px 12px;
-            border-radius: 3cm;
-            cursor: pointer;
-        }
-        .modal{
-            display:none;
-            position:fixed;
-            z-index:1;
-            left:0;
-            top:0;
-            width:100%;
-            height:100%;
-            background-color: rgba(0,0,0,0.4);
-        }
-        .modal-content{
-            background-color: #fefefe;
-            margin:15% auto;
-            padding:20px;
-            border:1px solid #888;
-            width:300px;
-            text-align:center;
-        }
-        .close-btn{
-            color:#aaa;
-            float:right;
-            font-size:28px;
-            font-weight:bold;
-            cursor:pointer
-        }
-        .close-btn:hover,
-        .close-btn:focus{
-            color:black;
-            text-decoration:none;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: Arial, sans-serif; background: #f5f5f5; color: #333; }
 
-        #pop-input{
-            padding:8px;
-            margin-top:10px;
-            width:80%;
-        }
-        #add-btn{
-            padding:10px 15px;
-            margin-top:10px;
-            background-color: #4CAF50;
-            color:white;
-            border:none;
-            cursor:pointer;
-        }
+        .page { padding: 1.5rem; max-width: 860px; margin: 0 auto; }
+
+        .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid #e0e0e0; }
+        .header-left h1 { font-size: 20px; font-weight: 500; }
+        .header-left p { font-size: 13px; color: #888; margin-top: 2px; }
+
+        .ws-badge { display: flex; align-items: center; gap: 6px; font-size: 12px; padding: 5px 10px; border-radius: 8px; border: 1px solid #a3d9a5; color: #2e7d32; background: #e8f5e9; }
+        .ws-dot { width: 7px; height: 7px; border-radius: 50%; background: #2e7d32; }
+        .ws-badge.disconnected { border-color: #f5a5a5; color: #c62828; background: #ffebee; }
+        .ws-badge.disconnected .ws-dot { background: #c62828; }
+
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+
+        .card { background: #fff; border: 1px solid #e0e0e0; border-radius: 12px; overflow: hidden; }
+        .card-header { padding: 1rem 1.25rem; border-bottom: 1px solid #e0e0e0; display: flex; align-items: center; justify-content: space-between; }
+        .card-title { display: flex; align-items: center; gap: 8px; }
+        .card-title span { font-size: 15px; font-weight: 500; }
+
+        .icon-box { width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+        .icon-daily { background: #e3f2fd; }
+        .icon-occ { background: #fff8e1; }
+
+        .add-btn { width: 28px; height: 28px; border-radius: 8px; border: 1px solid #ddd; background: transparent; cursor: pointer; font-size: 18px; line-height: 1; color: #666; display: flex; align-items: center; justify-content: center; }
+        .add-btn:hover { background: #f5f5f5; }
+
+        .alarm-list { padding: 0.5rem 0; min-height: 120px; }
+        .alarm-item { display: flex; align-items: center; gap: 10px; padding: 0.6rem 1.25rem; border-bottom: 1px solid #f0f0f0; }
+        .alarm-item:last-child { border-bottom: none; }
+        .alarm-time { font-size: 12px; font-weight: 500; color: #888; min-width: 90px; }
+        .alarm-msg { font-size: 13px; color: #333; flex: 1; }
+        .alarm-delete { width: 20px; height: 20px; border-radius: 50%; border: none; background: transparent; cursor: pointer; color: #bbb; font-size: 14px; display: flex; align-items: center; justify-content: center; }
+        .alarm-delete:hover { color: #c62828; background: #ffebee; }
+
+        .empty { text-align: center; padding: 2rem 1rem; color: #bbb; font-size: 13px; }
+
+        .toast-area { margin-top: 1rem; }
+        .toast { background: #fff; border: 1px solid #e0e0e0; border-radius: 12px; padding: 0.85rem 1.25rem; display: flex; align-items: center; gap: 10px; margin-bottom: 0.5rem; animation: fadeIn 0.3s ease; }
+        .toast-icon { width: 32px; height: 32px; border-radius: 50%; background: #fff8e1; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 16px; }
+        .toast-body p:first-child { font-size: 14px; font-weight: 500; color: #333; }
+        .toast-body p:last-child { font-size: 12px; color: #888; margin-top: 2px; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+        .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.35); z-index: 10; align-items: center; justify-content: center; }
+        .overlay.show { display: flex; }
+        .modal { background: #fff; border: 1px solid #e0e0e0; border-radius: 12px; padding: 1.25rem; width: 300px; }
+        .modal h3 { font-size: 15px; font-weight: 500; margin-bottom: 1rem; color: #333; }
+        .modal label { font-size: 12px; color: #888; display: block; margin-bottom: 4px; margin-top: 10px; }
+        .modal input { width: 100%; padding: 7px 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 13px; color: #333; outline: none; }
+        .modal input:focus { border-color: #1976d2; }
+
+        .modal-footer { display: flex; gap: 8px; margin-top: 1rem; justify-content: flex-end; }
+        .btn-cancel { padding: 7px 14px; border: 1px solid #ddd; border-radius: 8px; background: transparent; cursor: pointer; font-size: 13px; color: #666; }
+        .btn-cancel:hover { background: #f5f5f5; }
+        .btn-save { padding: 7px 14px; border: 1px solid #1565c0; border-radius: 8px; background: #e3f2fd; cursor: pointer; font-size: 13px; color: #1565c0; font-weight: 500; }
+        .btn-save:hover { opacity: 0.85; }
     </style>
-</Head>
-<Body>
-    <div class="heading">
-        <h1>Remainders service</h1>
-    </div>
-    <div class="container">
-        <div class="half-box">
-            <h2>Daily Remainders</h2>
-            <button class="float-btn">+</button>
+</head>
+<body>
+
+<div class="page">
+    <div class="header">
+        <div class="header-left">
+            <h1>Reminders</h1>
+            <p>Manage your daily and occasional alarms</p>
         </div>
-        <div class="half-box">
-            <h2>Normal Remainders</h2>
-            <button class="float-btn">+</button>
-        </div>
-    </div>
-    <div id="my-model" class="modal">
-        <div class="model-content">
-            <span class="close-btn">&times;</span>
-            <h3>Enter Details</h3>
-            <input type="datetime-local" id="time" required>
-            <input type="text" id="pop-input" placeholder="message" required>
-            <button id="add-btn">Add</button>
+        <div class="ws-badge disconnected" id="wsBadge">
+            <div class="ws-dot"></div>
+            <span id="wsLabel">Connecting...</span>
         </div>
     </div>
-    
-    <script>
-        const ws=new WebSocket("ws://localhost:8180/ws");
-        ws.onmessage=(e)=>{
-            const alarm=JSON.parse(e.data);
-            console.log("Alarm:"+alarm.message);
+
+    <div class="grid">
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">
+                    <div class="icon-box icon-daily">&#9728;</div>
+                    <span>Daily reminders</span>
+                </div>
+                <button class="add-btn" onclick="openModal('daily')">+</button>
+            </div>
+            <div class="alarm-list" id="dailyList">
+                <div class="empty">No daily reminders yet</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">
+                    <div class="icon-box icon-occ">&#128197;</div>
+                    <span>Occasional reminders</span>
+                </div>
+                <button class="add-btn" onclick="openModal('occasional')">+</button>
+            </div>
+            <div class="alarm-list" id="occasionalList">
+                <div class="empty">No occasional reminders yet</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-area" id="toastArea"></div>
+</div>
+
+<div class="overlay" id="overlay">
+    <div class="modal">
+        <h3 id="modalTitle">Add reminder</h3>
+        <label>Date &amp; time</label>
+        <input type="datetime-local" id="inputTime">
+        <label>Message</label>
+        <input type="text" id="inputMsg" placeholder="e.g. Take medication">
+        <div class="modal-footer">
+            <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+            <button class="btn-save" onclick="saveAlarm()">Add reminder</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let currentType = 'daily';
+    const dailyAlarms = [];
+    const occasionalAlarms = [];
+
+    function openModal(type) {
+        currentType = type;
+        document.getElementById('modalTitle').textContent =
+            type === 'daily' ? 'Add daily reminder' : 'Add occasional reminder';
+        document.getElementById('inputTime').value = '';
+        document.getElementById('inputMsg').value = '';
+        document.getElementById('overlay').classList.add('show');
+    }
+
+    function closeModal() {
+        document.getElementById('overlay').classList.remove('show');
+    }
+
+    function saveAlarm() {
+        const time = document.getElementById('inputTime').value;
+        const msg = document.getElementById('inputMsg').value.trim();
+        if (!time || !msg) { alert('Please fill in all fields'); return; }
+
+        const alarm = { id: Date.now(), time, message: msg };
+
+        if (currentType === 'daily') {
+            dailyAlarms.push(alarm);
+            renderList('dailyList', dailyAlarms, 'daily');
+        } else {
+            occasionalAlarms.push(alarm);
+            renderList('occasionalList', occasionalAlarms, 'occasional');
         }
-        const modal = document.getElementById("my-model");
-        const openPopupBtn = document.getElementsByClassName("float-btn")[0];
-        const closeBtn = document.getElementsByClassName("close-btn")[0];
-        const addBtn = document.getElementById("add-btn");
-        const popupInput = document.getElementById("pop-input");
 
-        // When the user clicks the "Open Pop-up" button, open the modal
-        openPopupBtn.onclick = function() {
-            console.log("block is displayed");
-            modal.style.display = "block";
-            popupInput.value = ''; // Clear input field when opening
-        };
+        fetch('/alarms', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                time: new Date(time).toISOString(),
+                message: msg
+            })
+        }).catch(err => console.log('Error:', err));
 
-        // When the user clicks on (x), close the modal
-        closeBtn.onclick = function() {
-            modal.style.display = "none";
-        };
+        closeModal();
+    }
 
-        // When the user clicks anywhere outside of the modal, close it
-        window.onclick = function(event) {
-            if (event.target === modal) {
-                modal.style.display = "none";
-            }
-        };
+    function deleteAlarm(type, id) {
+        const list = type === 'daily' ? dailyAlarms : occasionalAlarms;
+        const i = list.findIndex(a => a.id === id);
+        if (i > -1) list.splice(i, 1);
+        renderList(
+            type === 'daily' ? 'dailyList' : 'occasionalList',
+            list, type
+        );
+    }
 
-        addBtn.onclick=function(){
-            const time=document.getElementById("time").value;
-            const msg=popupInput.value;
-            if (msg.trim() !== "") {
-                alert("You entered: " + msg);
-                // You can add more logic here to handle the input (e.g., add to a list)
-                modal.style.display = "none"; // Close the modal after submission
-            } else {
-                alert("Please enter something!");
-            }
-            console.log("POST request...");
-            try{
-                fetch("/alarms",{
-                    method:"POST",
-                    headers:{"Content-Type":"application/json"},
-                    body:JSON.stringify({
-                        time:new Date(time).toISOString(),
-                        message:msg
-                    })
-                });
-            }catch(err){
-                console.log("Error occured",err);
-            }
+    function renderList(containerId, list, type) {
+        const el = document.getElementById(containerId);
+        if (!list.length) {
+            el.innerHTML = '<div class="empty">No reminders yet</div>';
+            return;
         }
+        el.innerHTML = list.map(a => {
+            const d = new Date(a.time);
+            const label = d.toLocaleString('en-IN', {
+                month: 'short', day: 'numeric',
+                hour: '2-digit', minute: '2-digit'
+            });
+            return `<div class="alarm-item">
+                <span class="alarm-time">${label}</span>
+                <span class="alarm-msg">${a.message}</span>
+                <button class="alarm-delete" onclick="deleteAlarm('${type}',${a.id})">&#x2715;</button>
+            </div>`;
+        }).join('');
+    }
 
-    </script>
-</Body>
-</HTML>
+    function showToast(alarm) {
+        const area = document.getElementById('toastArea');
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        toast.innerHTML = `
+            <div class="toast-icon">&#128276;</div>
+            <div class="toast-body">
+                <p>${alarm.message}</p>
+                <p>Alarm triggered</p>
+            </div>`;
+        area.appendChild(toast);
+        setTimeout(() => toast.remove(), 5000);
+    }
 
+    // WebSocket connection
+    const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const ws = new WebSocket(`${wsProtocol}//${window.location.host}/ws`);
+    const badge = document.getElementById('wsBadge');
+    const wsLabel = document.getElementById('wsLabel');
+
+    ws.onopen = () => {
+        badge.classList.remove('disconnected');
+        wsLabel.textContent = 'Connected';
+    };
+    ws.onclose = () => {
+        badge.classList.add('disconnected');
+        wsLabel.textContent = 'Disconnected';
+    };
+    ws.onerror = () => {
+        badge.classList.add('disconnected');
+        wsLabel.textContent = 'Error';
+    };
+    ws.onmessage = (e) => {
+        try {
+            const alarm = JSON.parse(e.data);
+            showToast(alarm);
+            console.log('Alarm:', alarm.message);
+        } catch (err) {
+            console.log('Parse error:', err);
+        }
+    };
+</script>
+
+</body>
+</html>

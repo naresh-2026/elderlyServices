@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: uservice1
+  labels:
+    app: uservice1
+spec:
+  replicas: 2                        # Number of pods
+  selector:
+    matchLabels:
+      app: uservice1
+  template:
+    metadata:
+      labels:
+        app: uservice1
+    spec:
+      containers:
+        - name: uservice1
+          image: naresh2026/uservice1:latest
+          imagePullPolicy: Always  
+          ports:
+            - containerPort: 8180   # Must match EXPOSE in Dockerfile
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "250m"
+            limits:
+              memory: "128Mi"
+              cpu: "500m"

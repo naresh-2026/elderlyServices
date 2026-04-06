@@ -1,0 +1,90 @@
+pipeline {
+    agent any
+
+    triggers {
+        pollSCM('H/5 * * * *')   // Poll GitHub every 5 minutes
+    }
+
+    environment {
+        DOCKERHUB_USER = 'naresh2026'
+        DOCKERHUB_CREDENTIALS = 'dockerhub-credentials'
+    }
+
+    stages {
+        stage('Detect Changed Services') {
+            steps {
+                script {
+                    def changedFiles = sh(
+                        script: "git diff --name-only HEAD~1 HEAD",
+                        returnStdout: true
+                    ).trim().split('\n')
+
+                    def changedServices = changedFiles
+                        .findAll { it.startsWith('uservice') }
+                        .collect { it.split('/')[0] }
+                        .unique()
+
+                    echo "Changed services: ${changedServices}"
+                    env.CHANGED_SERVICES = changedServices.join(',')
+                }
+            }
+        }
+
+        stage('Build & Push Changed Services') {
+            steps {
+                script {
+                    if (!env.CHANGED_SERVICES) {
+                        echo "No service changes detected. Skipping build."
+                        return
+                    }
+
+                    def services = env.CHANGED_SERVICES.split(',')
+
+                    docker.withRegistry('https://index.docker.io/v1/', DOCKERHUB_CREDENTIALS) {
+                        services.each { service ->
+                            echo "Building ${service}..."
+                            def image = docker.build(
+                                "${DOCKERHUB_USER}/${service}:latest",
+                                "--no-cache ./${service}"
+                            )
+                            image.push('latest')
+                            image.push("${env.BUILD_NUMBER}")
+                            echo "✅ ${service} pushed!"
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Deploy to Kubernetes') {
+            steps {
+                script {
+                    if (!env.CHANGED_SERVICES) {
+                        echo "No changes. Skipping deploy."
+                        return
+                    }
+
+                    def services = env.CHANGED_SERVICES.split(',')
+
+                    withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
+                        services.each { service ->
+                            sh "kubectl apply -f ./${service}/deployment.yaml"
+                            sh "kubectl apply -f ./${service}/service.yaml"
+                            sh "kubectl rollout restart deployment/${service}"
+                            echo "✅ ${service} deployed!"
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "✅ Pipeline completed successfully!"
+        }
+        failure {
+            echo "❌ Pipeline failed. Check logs."
+        }
+    }
+}
